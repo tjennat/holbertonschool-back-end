@@ -1,40 +1,28 @@
 #!/usr/bin/python3
-import sys
+"""Returning information about employees TO DO list progress"""
+
+
 import requests
-
-def fetching_todo_progress(employee_id):
-    url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
-    response = requests.get(url)
-    if response.status_code != 200:
-        print("Error: Failed to fetch data from the API.")
-        return
-
-    todos = response.json()
-    if not todos:
-        print(f"No TODOs found for employee ID {employee_id}.")
-        return
-
-    total_tasks = len(todos)
-    completed_tasks = sum(1 for todo in todos if todo['completed'])
-
-    url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    response = requests.get(url)
-    if response.status_code != 200:
-        print("Error: Failed to fetch user data from the API.")
-        return
-
-    user_data = response.json()
-    employee_name = user_data.get('name', 'Unknown')
-
-    print(f"Employee {employee_name} is done with tasks ({completed_tasks}/{total_tasks}):")
-    for todo in todos:
-        if todo['completed']:
-            print(f"\t{todo['title']}")
+from sys import argv
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 script.py <employee_id>")
-        sys.exit(1)
 
-    employee_id = int(sys.argv[1])
-    fetching_todo_progress(employee_id)
+    user_api_url = "https://jsonplaceholder.typicode.com/users/{}".format(
+        argv[1])
+    user = requests.get(user_api_url)
+    employee_name = user.json().get('name')
+
+    tasks_url = "https://jsonplaceholder.typicode.com/users/{}/todos/".format(
+        argv[1])
+    todos = requests.get(tasks_url)
+    todos_tasks = todos.json()
+    total_tasks = len(todos_tasks)
+
+    titles = [item.get('title') for item in todos_tasks if
+              item.get("completed") is True]
+    done_tasks = len(titles)
+
+    print("Employee {} is done with tasks({}/{}):".format(
+        employee_name, done_tasks, total_tasks))
+    for _ in titles:
+        print("\t {}".format(_))
