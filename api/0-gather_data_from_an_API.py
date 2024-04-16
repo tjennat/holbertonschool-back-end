@@ -1,32 +1,40 @@
 #!/usr/bin/python3
-"""Gathering data from an API"""
-
-import requests
 import sys
+import requests
 
-def get_employee_todo_progress(employee_id):
-    """Fetching employee data"""
-    employee_response = requests.get(f'https://jsonplaceholder.typicode.com/users/{employee_id}')
-    employee = employee_response.json()
+def fetching_todo_progress(employee_id):
+    url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+    response = requests.get(url)
+    if response.status_code != 200:
+        print("Error: Failed to fetch data from the API.")
+        return
 
-    """Fetching TODOs for the employee"""
-    todos_response = requests.get(f'https://jsonplaceholder.typicode.com/todos?userId={employee_id}')
-    todos = todos_response.json()
+    todos = response.json()
+    if not todos:
+        print(f"No TODOs found for employee ID {employee_id}.")
+        return
 
-    """Calculating  progress"""
     total_tasks = len(todos)
-    done_tasks = len([todo for todo in todos if todo['completed']])
-    
-    """Displaying progress"""
-    print(f"Employee {employee['name']} is done with tasks({done_tasks}/{total_tasks}):")
+    completed_tasks = sum(1 for todo in todos if todo['completed'])
+
+    url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        print("Error: Failed to fetch user data from the API.")
+        return
+
+    user_data = response.json()
+    employee_name = user_data.get('name', 'Unknown')
+
+    print(f"Employee {employee_name} is done with tasks ({completed_tasks}/{total_tasks}):")
     for todo in todos:
         if todo['completed']:
-            print(f"\t {todo['title']}")
+            print(f"\t{todo['title']}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python script.py [EMPLOYEE_ID]")
+        print("Usage: python3 script.py <employee_id>")
         sys.exit(1)
 
     employee_id = int(sys.argv[1])
-    get_employee_todo_progress(employee_id)
+    fetching_todo_progress(employee_id)
