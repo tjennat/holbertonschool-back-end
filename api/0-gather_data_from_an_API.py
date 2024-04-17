@@ -1,28 +1,46 @@
 #!/usr/bin/python3
-"""Returning information about employees TO DO list progress"""
-
-
+"""Gathering data from an API for a given employee
+ID that display a TO-DO list progress."""
 import requests
-from sys import argv
+import sys
+
+
+def to_do(employee_ID):
+    """
+    Retrieving employee information and TO-DO
+    list progress based on the employee ID.
+    """
+    url = 'https://jsonplaceholder.typicode.com'
+    employee_url = f"{url}/users/{employee_ID}"
+    todos_url = f"{url}/todos?userId={employee_ID}"
+
+    employee_response = requests.get(employee_url)
+    employee_data = employee_response.json()
+
+    if employee_response.status_code == 200:
+        employee_name = employee_data.get('name')
+
+    todos_response = requests.get(todos_url)
+    todos_data = todos_response.json()
+
+    if todos_response.status_code == 200:
+        total_tasks = len(todos_data)
+        completed_tasks = 0
+    for task in todos_data:
+        completed_tasks += task['completed']
+
+    print("Employee {} is done with tasks({}/{}):"
+          .format(employee_name, completed_tasks, total_tasks))
+
+    for task in todos_data:
+        if task['completed']:
+            print("\t {}".format(task['title']))
+
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("error")
+        sys.exit(1)
 
-    user_api_url = "https://jsonplaceholder.typicode.com/users/{}".format(
-        argv[1])
-    user = requests.get(user_api_url)
-    employee_name = user.json().get('name')
-
-    tasks_url = "https://jsonplaceholder.typicode.com/users/{}/todos/".format(
-        argv[1])
-    todos = requests.get(tasks_url)
-    todos_tasks = todos.json()
-    total_tasks = len(todos_tasks)
-
-    titles = [item.get('title') for item in todos_tasks if
-              item.get("completed") is True]
-    done_tasks = len(titles)
-
-    print("Employee {} is done with tasks({}/{}):".format(
-        employee_name, done_tasks, total_tasks))
-    for _ in titles:
-        print("\t {}".format(_))
+    employee_id = int(sys.argv[1])
+    to_do(employee_id)
