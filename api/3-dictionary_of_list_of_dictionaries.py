@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """
-Script that Fetches user and to-do data from JSONPlaceholder and creates a JSON file
+Script that Fetches user and to-do data from JSONPlaceholder
+and creates a JSON file
 containing tasks for each user.
 """
 import json
